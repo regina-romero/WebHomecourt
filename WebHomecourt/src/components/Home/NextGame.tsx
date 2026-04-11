@@ -47,16 +47,22 @@ export const useTemporizador = (startDate?: string) =>{
 
 //Maybe cambiarlo a dias, horas, min, seg
 const formatTime = (seg: number) => {
-    const h = Math.floor(seg / 3600);
-    const m = Math.floor((seg % 3600) / 60);
+  const d = Math.floor(seg / 86400);
+  const h = Math.floor((seg % 86400) / 3600);
+  const m = Math.floor((seg % 3600) / 60);
     const s = seg % 60;
-    
-    return `${h.toString().padStart(2,"0")}:${m.toString().padStart(2,"0")}:${s.toString().padStart(2,"0")}`;
+
+  if (d > 0) {
+    return `${d.toString().padStart(2,"0")}:${h.toString().padStart(2,"0")}:${m.toString().padStart(2,"0")}:${s.toString().padStart(2,"0")}`;
+  }
+
+  return `${Math.floor(seg / 3600).toString().padStart(2,"0")}:${m.toString().padStart(2,"0")}:${s.toString().padStart(2,"0")}`;
 };
 
 function NextGame(){
     const [juego, setJuego] = useState<ProximoJuego | null> (null);
     const segundos = useTemporizador(juego?.start_date);
+    const mostrarDias = segundos >= 86400;
 
     useEffect(() => {
         const fetchJuego = async () =>{
@@ -93,7 +99,9 @@ function NextGame(){
                 <div className="text-violet-950 text-4xl md:text-7xl font-black tracking-wider">
                     {formatTime(segundos)}
                 </div>
-                <p className="text-violet-950 text-xs md:text-base">Hours : Minutes : Seconds</p>
+                <p className="text-violet-950 text-xs md:text-base">
+                    {mostrarDias ? "Days : Hours : Minutes : Seconds" : "Hours : Minutes : Seconds"}
+                </p>
               </div>
             </div>
           </article>
