@@ -80,7 +80,7 @@ function NextGame(){
     if(!juego) return null
 
     return(
-        <section className="px-4 md:px-14 py-5 bg-zinc-100 w-full">
+
           <article className="w-full px-5 py-7 bg-purple-900 rounded-2xl shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] outline outline-1 outline-offset-[-1px] outline-black/25 flex flex-col justify-start items-start gap-3.5 overflow-hidden">
             <header className="self-stretch flex justify-between items-center">
               <div className="flex justify-start items-center gap-4 md:gap-7">
@@ -105,7 +105,6 @@ function NextGame(){
               </div>
             </div>
           </article>
-        </section>  
     )
 }
 

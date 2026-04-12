@@ -1,6 +1,9 @@
 import { supabase } from "../../lib/supabase";
 import { useEffect, useState } from "react"
 import { BarChart, Bar, XAxis, YAxis, LabelList, ResponsiveContainer,} from "recharts";
+import { format } from "date-fns";
+import { SummaryScoreCard } from "../Agenda/GameScore";
+
 
 //Usando lo de amparo pero para no romper su codigo lo modificare aqui!
 const MINI_STATS = [
@@ -11,6 +14,7 @@ const MINI_STATS = [
 
 export type MiniStats = {
   game_id: number;
+  start_date: string;
   lakers_rebounds: number;
   opposing_rebounds: number;
   lakers_assists: number;
@@ -79,7 +83,7 @@ function GameSummaryMiniGraph({ game_id, refreshKey = 0, pastGame }: GameSummary
     <div className="w-full px-4 md:px-6 pt-6 pb-7 bg-white rounded-2xl border border-black/25 flex flex-col gap-6">
       <div className="flex justify-between items-center">
         <h2 className="text-purple-900 text-xl md:text-3xl font-medium">
-          Live Stats Summary
+          {pastGame ? "Last Game Summary" : "Live Stats Summary"}
         </h2>
         <div className="flex items-center gap-2 text-zinc-500 text-sm md:text-lg">
           <span>View more</span>
@@ -91,15 +95,13 @@ function GameSummaryMiniGraph({ game_id, refreshKey = 0, pastGame }: GameSummary
           <div className="flex items-center gap-4 md:gap-7">
             <div className="flex flex-col justify-center">
               <div className="text-black text-xl md:text-3xl font-normal">vs {teamStats?.opposing_team_name}</div>
-              <div className="text-black text-sm md:text-lg font-normal">Thu, 26 Feb</div>
+              <div className="text-black text-sm md:text-lg font-normal">{teamStats?.start_date ? format(new Date(teamStats.start_date), "MMMM do, yyyy") : "N/A"}</div>
             </div>
             <div className="w-10 h-10 md:w-14 md:h-14">
-              <img className="w-full h-full object-contain" src="https://placehold.co/60x60"/>
+              <img className="w-full h-full object-contain" src={teamStats?.opposing_team_logo}/>
             </div>
           </div>
-          <div className="self-start md:self-auto px-4 md:px-5 py-2 bg-rose-100 rounded-2xl border-2 border-red-700 flex justify-center items-center">
-            <div className="text-red-700 text-lg md:text-2xl font-normal">110 - 113</div>
-          </div>
+          <SummaryScoreCard lakers_score={teamStats?.lakers_points ?? 0} opposite_score={teamStats?.opposing_points ?? 0} />
         </div>
       ) : null}
       <div className="flex flex-col gap-5">
