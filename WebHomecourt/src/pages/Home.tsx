@@ -18,6 +18,18 @@ export async function getPastGameId(): Promise<number> {
   return data
 }
 
+//Obtener el id del ultimo partido
+export async function getPastGameId(): Promise<number> {
+  const { data, error } = await supabase.rpc("get_last_game_id", {}) 
+  // Smth died
+  if (error) {
+    console.error("Supabase error:", error.message)
+    throw new Error("Failed to get ministats")
+  }
+
+  return data
+}
+
 function Home() {
   const [juego, setJuego] = useState<MarcadorJuego | null> (null);
   const [pastgame, setPastGame] = useState<number | null> (null);
