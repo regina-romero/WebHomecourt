@@ -5,6 +5,7 @@ import MarcadorActivo, {getMarcadorActivo, type MarcadorJuego} from '../componen
 import NextGame from '../components/Home/NextGame'
 import GameSummaryMiniGraph from '../components/Home/MiniStats'
 import MiniBrackets from '../components/Home/MiniBrakets'
+import RealtimeChat from '../components/RealtimeChat'
 
 
 //Obtener el id del ultimo partido
@@ -87,9 +88,10 @@ function Home() {
           <MiniBrackets />
         </div>
         <div className="flex flex-col gap-6 lg:sticky lg:top-6">
-          <div className="bg-white rounded-2xl p-6">
+          {/* <div className="bg-white rounded-2xl p-6">
             AQUI VA EL CHAT EN TIEMPO REAL
-          </div>
+          </div> */}
+          <RealtimeChat></RealtimeChat>
         </div>
       </div>
     </section>
