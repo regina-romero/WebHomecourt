@@ -6,17 +6,6 @@ import NextGame from '../components/Home/NextGame'
 import GameSummaryMiniGraph from '../components/Home/MiniStats'
 import MiniBrackets from '../components/Home/MiniBrakets'
 
-//Obtener el id del ultimo partido
-export async function getPastGameId(): Promise<number> {
-  const { data, error } = await supabase.rpc("get_last_game_id", {}) 
-  // Smth died
-  if (error) {
-    console.error("Supabase error:", error.message)
-    throw new Error("Failed to get ministats")
-  }
-
-  return data
-}
 
 //Obtener el id del ultimo partido
 export async function getPastGameId(): Promise<number> {
