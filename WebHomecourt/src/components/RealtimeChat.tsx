@@ -3,6 +3,7 @@ import type { FormEvent } from "react"
 import type { Session } from "@supabase/supabase-js"
 import { supabase } from "../lib/supabase"
 import { RequireSession, useAuth } from "../context/AuthContext"
+import ChatPanelFrame from "./Home/ChatPanelFrame.tsx"
 import { format } from "date-fns";
 import StatusAlert from "./Messages/StatusAlert";
 import { Filter } from "glin-profanity";
@@ -13,6 +14,7 @@ import { Profanity } from "@2toad/profanity";
 type RealtimeChatProps = {
   gameId?: number | null
   isGameLoading?: boolean
+  onOpenPrivateList?: () => void
 }
 
 //Cosas necesarias para el mensaje
@@ -29,7 +31,9 @@ const CustomWords = [
   "pendejo", "pendeja", "chingar", "chingada", "chingón",
   "cabrón", "cabron", "pinche", "culero", "culera",
   "mamón", "mamon", "puta", "puto", "verga",
-  "joto", "culiao", "hdp", "hijodeputa", "fundillo", "semen"
+  "joto", "culiao", "hdp", "hijodeputa", "fundillo", "semen", "heil hitler", "67", "shittyass",
+  "chupaculos", "piruja", "pirujo", "slutface", "fuckerface", "slave",
+  "cotton picker", "cracker", "child toucher"
 ]
 //Checar groserias en ingles y español libreria 1
 const glinFilter = new Filter({
@@ -109,7 +113,7 @@ async function getDisplayName(session: Session | null): Promise<string> {
 }
 
 //El verdadero discord jeje
-function RealtimeChat({ gameId = null, isGameLoading = false }: RealtimeChatProps) {
+function RealtimeChat({ gameId = null, isGameLoading = false, onOpenPrivateList }: RealtimeChatProps) {
   //Para obtener sesion actual
   const { session } = useAuth()
   const [messages, setMessages] = useState<ChatMessage[]>([])
@@ -266,73 +270,74 @@ function RealtimeChat({ gameId = null, isGameLoading = false }: RealtimeChatProp
       }
     >
     {isGameLoading ? null : (
-    <>
-    {gameId == null ? (
-      <section className="w-full h-full max-h-[500px] lg:max-h-[700px] p-6 bg-white rounded-2xl outline outline-1 outline-black/25 flex flex-col gap-4 overflow-hidden">
-        <div className="self-stretch inline-flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-violet-950">Real-Time Chat</h2>
-          {/* <span className="w-6 h-6 material-symbols-outlined">expand_content</span> */}
-        </div>
-        <div className="self-stretch h-0.5 bg-zinc-500"></div>
-        <StatusAlert
-          tone="info"
-          title="Realtime chat is available only when there is a live game."
-        />
-      </section>
-    ) : (
-    <section className="w-full h-full max-h-[500px] lg:max-h-[700px] p-6 bg-white rounded-2xl outline outline-1 outline-black/25 flex flex-col gap-4 overflow-hidden">
-    <div className="self-stretch inline-flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-violet-950">Real-Time Chat</h2>
-        {/* <span className="w-6 h-6 material-symbols-outlined">expand_content</span> */}
-      </div>
-      <div className="self-stretch h-0.5 bg-zinc-500"></div>
-      <div className="flex-1 min-h-0 w-full overflow-y-auto flex flex-col gap-6 pr-2">
-        {messages.length === 0 ? (
-          <p className="text-sm text-zinc-500">No messages yet.</p>
+      <>
+        {gameId == null ? (
+          <ChatPanelFrame
+            title="Real-Time Chat"
+            activeTab="community"
+            onOpenPrivate={onOpenPrivateList}
+          >
+            <StatusAlert
+              tone="info"
+              title="Realtime chat is available only when there is a live game."
+            />
+          </ChatPanelFrame>
         ) : (
-          messages.map((item) => (
-            <article key={item.id} >
-              <div className="flex w-full justify-between items-center gap-3">
-                <strong className="min-w-0 truncate justify-start text-purple-900 text-2xl font-normal font-['Graphik']">{item.username}</strong>
-                <time className="shrink-0 justify-start text-neutral-400 text-xs md:text-sm font-normal font-['Graphik'] whitespace-nowrap">
-                  {format(new Date(item.created_at), "dd/MM/yyyy, hh:mm a")
-                    .replace("AM", "a.m.")
-                    .replace("PM", "p.m.")}
-                </time>
-                </div>
-              <p className="justify-start text-black text-base font-normal font-['Graphik']">{item.message}</p>
-            </article>
-          ))
-        )}
-        <div ref={bottomRef} />
-      </div>
-      <div className="self-stretch h-0.5 bg-zinc-500"></div>
-      <form onSubmit={handleSubmit} className="w-full flex items-center gap-3">
-        <input
-          className="flex-1 h-11 rounded-2xl border border-black/25 px-4 text-lg outline-none focus:ring-2 focus:ring-purple-400 transition"
-          type="text"
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          placeholder={`Type a message..`}
-          maxLength={240}
-        />
-        <button
-          type="submit"
-          disabled={!isReady || !session}
-          className={`px-5 py-3 rounded-2xl flex items-center justify-center text-xl font-normal transition-all duration-200 
+          <ChatPanelFrame
+            title="Real-Time Chat"
+            activeTab="community"
+            onOpenPrivate={onOpenPrivateList}
+            footer={
+              <>
+                <form onSubmit={handleSubmit} className="w-full flex items-center gap-3">
+                  <input
+                    className="flex-1 h-11 rounded-2xl border border-black/25 px-4 text-lg outline-none focus:ring-2 focus:ring-purple-400 transition"
+                    type="text"
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    placeholder={`Type a message..`}
+                    maxLength={240}
+                  />
+                  <button
+                    type="submit"
+                    disabled={!isReady || !session}
+                    className={`px-5 py-3 rounded-2xl flex items-center justify-center text-xl font-normal transition-all duration-200 
             ${!isReady || !session ? "bg-purple-900 opacity-50 text-neutral-400 cursor-not-allowed" : "bg-purple-900 text-zinc-100 hover:bg-violet-800 active:scale-95"}`}>
-          Send
-        </button>
-      </form>
-      {error ? (
-        <StatusAlert
-          tone="warning"
-          title={error}
-        />
-      ) : null}
-    </section>
-    )}
-    </>
+                    Send
+                  </button>
+                </form>
+                {error ? (
+                  <StatusAlert
+                    tone="warning"
+                    title={error}
+                  />
+                ) : null}
+              </>
+            }
+          >
+            <div className="flex flex-col gap-6">
+              {messages.length === 0 ? (
+                <p className="text-sm text-zinc-500">No messages yet.</p>
+              ) : (
+                messages.map((item) => (
+                  <article key={item.id}>
+                    <div className="flex w-full justify-between items-center gap-3">
+                      <strong className="min-w-0 truncate justify-start text-purple-900 text-2xl font-normal font-['Graphik']">{item.username}</strong>
+                      <time className="shrink-0 justify-start text-neutral-400 text-xs md:text-sm font-normal font-['Graphik'] whitespace-nowrap">
+                        {format(new Date(item.created_at), "dd/MM/yyyy, hh:mm a")
+                          .replace("AM", "a.m.")
+                          .replace("PM", "p.m.")}
+                      </time>
+                    </div>
+                    <p className="justify-start text-black text-base font-normal font-['Graphik']">{item.message}</p>
+                  </article>
+                ))
+              )}
+              <div ref={bottomRef} />
+            </div>
+          </ChatPanelFrame>
+        )}
+      </>
     )}
     </RequireSession>
   )
