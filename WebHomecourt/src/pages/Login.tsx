@@ -9,16 +9,15 @@ function Login() {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState(''); // Future allow username
   const [password, setPassword] = useState('');
-  //const [error, setError] = useState('');
+  const [error, setError] = useState('');
   const navigate = useNavigate();
-  //const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<any>(null);
   const [errorMessage, setErrorMessage] = useState('');
 
   // Checks fields are filled in, and does the login w supabase 
   const handleLogin = async () => {
-    //setError('');
+    setError('');
     setErrorMessage('');
-    console.log("handleLogin called", { email, password }); // Add this first
 
     // Checks fields are filled in
     if (email == '' && password == '') {
@@ -32,19 +31,16 @@ function Login() {
       // Filled everything in so tries to sign in now
       setLoading(true);
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      console.log("data:", data, "error:", error); // Add this
       if (error) {
-        //setError(error.message);
-        console.log(`Error iniciando sesión ${error}`);
+        setError(error.message);
+        console.log(`Error iniciando sesión ${error.message}`);
         setErrorMessage("Incorrect credentials");
       } else {
         console.log(`Sí inició sesión`);
-        //setUser(data.user); // Sets the user data 
+        setUser(data.user); // Sets the user data 
         navigate('/'); // Takes to home
       }
     }
-
-    setLoading(false);
   };
 
   // Sends request to reset password
