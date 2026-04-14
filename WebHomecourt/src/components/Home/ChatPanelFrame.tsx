@@ -31,13 +31,13 @@ function ChatPanelFrame({
           type={activeTab === "community" ? "primary" : "secondary"}
           text="Community"
           onClick={onOpenCommunity ?? (() => {})}
-          className="flex-1 py-3"
+          className="flex-1 !py-1"
         />
         <Button
           type={activeTab === "private" ? "primary" : "secondary"}
           text="Private"
           onClick={onOpenPrivate ?? (() => {})}
-          className="flex-1 py-3"
+          className="flex-1 !py-1"
         />
       </div>
 

@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react"
-import type { FormEvent } from "react"
 import type { Session } from "@supabase/supabase-js"
 import { supabase } from "../lib/supabase"
 import { RequireSession, useAuth } from "../context/AuthContext"
@@ -8,6 +7,7 @@ import { format } from "date-fns";
 import StatusAlert from "./Messages/StatusAlert";
 import { Filter } from "glin-profanity";
 import { Profanity } from "@2toad/profanity";
+import { useChatSubmit } from "../hooks/useChatSubmit";
 
 //No se para que esta ocupando esto, me imagino que para que la conversacion se guarde 
 //de acuerdo a que juego esta activo.
@@ -18,7 +18,7 @@ type RealtimeChatProps = {
 }
 
 //Cosas necesarias para el mensaje
-type ChatMessage = {
+export type ChatMessage = {
   id: string
   username: string
   message: string
@@ -50,7 +50,6 @@ const toadFilter = new Profanity({
 function detectSpacedProfanity(text: string, badWords: string[]): string {
   let result = text
   for (const word of badWords) {
-    // Crea regex que acepta cualquier separador entre letras: p[-. _]*u[-. _]*t[-. _]*a
     const spaced = word.split("").join("[-. _*]*")
     const regex = new RegExp(`\\b${spaced}\\b`, "gi")
     result = result.replace(regex, "***")
@@ -80,7 +79,8 @@ function normalizeSymbols(text: string): string {
   // Convierte @#$%&! y variantes a ***
   return text.replace(/[@#$%&!*]{2,}/g, "***")
 }
-
+//AHORA SIII 
+//Todo el proceso para limpiar los mensajes
 export function sanitizeMessage(text: string): string {
   const step1 = glinFilter.checkProfanity(text).processedText ?? text
   const step2 = toadFilter.censor(step1)
@@ -90,25 +90,22 @@ export function sanitizeMessage(text: string): string {
   const step6 = normalizeSymbols(step5)
   return step6
 }
-
 //Obtener el nickname para los mensajes
 //Es un select que permite authenticated para que no lo bloquee silenciosamente lol
 async function getDisplayName(session: Session | null): Promise<string> {
+  //Ocupa la sesion para buscar datos jeje porque si no no puede mandar mensajes
   if (!session?.user?.id) {
     return "You need to register to send a message"
   }
-
   const { data, error } = await supabase
     .from("user_laker")
     .select("nickname")
     .eq("user_id", session.user.id)
     .maybeSingle<{ nickname: string | null }>()
-
   if (error) {
     console.error("Supabase error:", error.message)
     return "You need to register to send a message"
   }
-
   return data?.nickname || "Guest"
 }
 
@@ -154,6 +151,7 @@ function RealtimeChat({ gameId = null, isGameLoading = false, onOpenPrivateList 
         //Cuando no hay juego activo !
         const roomName = `game-${gameId}`
         // console.log(`chat:${roomName}`);
+        // crea canal de supabase en tiempo real que se crea con el game id
         channel = supabase.channel(`chat:${roomName}`, {
           config: {
             broadcast: {
@@ -165,6 +163,7 @@ function RealtimeChat({ gameId = null, isGameLoading = false, onOpenPrivateList 
         setMessages([])
         setIsReady(false)
         setError(null)
+        // Hace broadcast para escuchar los mensajes
         channel
           .on("broadcast", { event: "message" }, ({ payload }) => {
             const incoming = payload as ChatMessage
@@ -202,63 +201,23 @@ function RealtimeChat({ gameId = null, isGameLoading = false, onOpenPrivateList 
     }
   }, [session, gameId, isGameLoading])
 
+  //Scrollview
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-
-    let cleanMessage = message.trim()
-
-    cleanMessage = sanitizeMessage(cleanMessage)
-
-    if (!cleanMessage) {
-      setError("Enter a message.")
-      return
-    }
-
-    if (!session) {
-      setError("You need an active session to send messages.")
-      return
-    }
-
-    if (gameId == null) {
-      setError("Realtime chat is available only during an active game.")
-      return
-    }
-
-    if (!channelRef.current || !isReady) {
-      setError("Chat is not connected yet.")
-      return
-    }
-
-    setError(null)
-
-    const outgoing: ChatMessage = {
-      id: Date.now().toString() + Math.random().toString(36).substring(2, 9),
-      username: displayName,
-      message: cleanMessage,
-      created_at: new Date().toISOString(),
-      game_id: gameId,
-    }
-
-    setMessages((current) => [...current, outgoing])
-
-    const sendResult = await channelRef.current.send({
-      type: "broadcast",
-      event: "message",
-      payload: outgoing,
-    })
-
-    if (sendResult !== "ok") {
-      setMessages((current) => current.filter((item) => item.id !== outgoing.id))
-      setError("Could not send the message.")
-      return
-    }
-
-    setMessage("")
-  }
+  //Hook para enviar mensaje
+  const { handleSubmit } = useChatSubmit({
+    message,
+    session,
+    gameId,
+    displayName,
+    isReady,
+    channelRef,
+    setError,
+    setMessages,
+    setMessage,
+  })
 
   return (
     <RequireSession

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../../lib/supabase"
 import ChatPanelFrame from "./ChatPanelFrame.tsx"
+import { usePrivateMessagesSubscription } from "../../hooks/usePrivateMessagesSubscription"
 
 export type FriendChat = {
   friendship_id: number
@@ -14,6 +15,7 @@ export type FriendChat = {
   last_message_sender_id: string | null
 }
 
+// Para saber cual esta abierto
 type ListChatsProps = {
   onOpenCommunity?: () => void
   onOpenPrivateChat?: (chat: FriendChat) => void
@@ -40,25 +42,34 @@ function ListChats({ onOpenCommunity, onOpenPrivateChat }: ListChatsProps) {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    const fetchChats = async () => {
-      try {
-        setIsLoading(true)
-        setError(null)
-        const chats = await getFriendsConvBySession()
-        setData(chats)
-      } catch (err) {
-        const message = err instanceof Error ? err.message : "Error loading chats"
-        setError(message)
-      } finally {
-        setIsLoading(false)
-      }
+  const fetchChats = async () => {
+    try {
+      setIsLoading(true)
+      setError(null)
+      const chats = await getFriendsConvBySession()
+      setData(chats)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Error loading chats"
+      setError(message)
+    } finally {
+      setIsLoading(false)
     }
+  }
 
+  // Cargar chats inicialmente
+  useEffect(() => {
     fetchChats()
   }, [])
 
-  const renderFriendRow = (chat: FriendChat, showOnlineDot: boolean) => (
+  // Escuchar cambios en mensajes privados y refrescar la lista
+  usePrivateMessagesSubscription({
+    listenToAll: true,
+    onMessageReceived: () => {
+      fetchChats()
+    },
+  })
+
+  const renderFriendRow = (chat: FriendChat) => (
     <button
       type="button"
       onClick={() => onOpenPrivateChat?.(chat)}
@@ -67,15 +78,8 @@ function ListChats({ onOpenCommunity, onOpenPrivateChat }: ListChatsProps) {
     >
       <div className="w-16 h-16 relative shrink-0">
         <div className="w-16 h-16 p-0.5 left-0 top-0 absolute rounded-full outline outline-2 outline-offset-[-2px] outline-gray-200 inline-flex flex-col justify-start items-start overflow-hidden bg-zinc-100">
-          <img
-            className="w-16 h-16 object-cover"
-            src={chat.friend_photo ?? "https://placehold.co/64x64"}
-            alt={chat.friend_nickname}
-          />
+          <img className="w-16 h-16 object-cover" src={chat.friend_photo ?? "https://placehold.co/64x64"}/>
         </div>
-        {showOnlineDot && (
-          <div className="w-3.5 h-3.5 left-[48px] top-[48px] absolute bg-green-500 rounded-full border-2 border-white"></div>
-        )}
       </div>
 
       <div className="min-w-0 inline-flex flex-col justify-start items-start gap-1.5">
@@ -109,7 +113,7 @@ function ListChats({ onOpenCommunity, onOpenPrivateChat }: ListChatsProps) {
         <div className="flex flex-col gap-7">
           <div className="self-stretch flex flex-col justify-start items-start gap-3.5">
             {data.length > 0 ? (
-              data.map((chat) => renderFriendRow(chat, Boolean(chat.friend_online)))
+              data.map((chat) => renderFriendRow(chat))
             ) : (
               <div className="self-stretch text-zinc-500 text-base font-normal font-['Graphik']">
                 No private chats yet.
@@ -118,7 +122,7 @@ function ListChats({ onOpenCommunity, onOpenPrivateChat }: ListChatsProps) {
           </div>
 
           <div className="self-stretch h-0.5 bg-zinc-500"></div>
-          <div className="self-stretch text-center text-zinc-500 text-3xl font-normal font-['Graphik']">
+          <div className="self-stretch text-center text-zinc-500 text-xl font-normal font-['Graphik']">
             Select a friend to start chatting
           </div>
         </div>
