@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../../lib/supabase"
 import ChatPanelFrame from "./ChatPanelFrame.tsx"
-import { usePrivateMessagesSubscription } from "../../hooks/usePrivateMessagesSubscription"
+import useActualizarMessPriv  from "../../hooks/usePrivateMessagesSubscription"
 
 export type FriendChat = {
   friendship_id: number
@@ -27,9 +27,7 @@ export async function getFriendsConvBySession(): Promise<FriendChat[]> {
   if (!session) {
     throw new Error("No session found")
   }
-  const { data, error } = await supabase.rpc("get_friend_chats", {
-    p_user_id: session.user.id,
-  })
+  const { data, error } = await supabase.rpc("get_friend_chats", {p_user_id: session.user.id,})
   if (error) {
     console.error("Supabase error:", error.message)
     throw new Error("Failed to get friend chats")
@@ -62,7 +60,7 @@ function ListChats({ onOpenCommunity, onOpenPrivateChat }: ListChatsProps) {
   }, [])
 
   // Escuchar cambios en mensajes privados y refrescar la lista
-  usePrivateMessagesSubscription({
+  useActualizarMessPriv({
     listenToAll: true,
     onMessageReceived: () => {
       fetchChats()
@@ -74,41 +72,29 @@ function ListChats({ onOpenCommunity, onOpenPrivateChat }: ListChatsProps) {
       type="button"
       onClick={() => onOpenPrivateChat?.(chat)}
       key={chat.friendship_id}
-      className="self-stretch p-2.5 rounded-2xl inline-flex justify-start items-center gap-5 overflow-hidden text-left hover:bg-zinc-100 transition"
-    >
+      className="self-stretch p-2.5 rounded-2xl inline-flex justify-start items-center gap-5 overflow-hidden text-left hover:bg-zinc-100 transition">
       <div className="w-16 h-16 relative shrink-0">
         <div className="w-16 h-16 p-0.5 left-0 top-0 absolute rounded-full outline outline-2 outline-offset-[-2px] outline-gray-200 inline-flex flex-col justify-start items-start overflow-hidden bg-zinc-100">
           <img className="w-16 h-16 object-cover" src={chat.friend_photo ?? "https://placehold.co/64x64"}/>
         </div>
       </div>
-
       <div className="min-w-0 inline-flex flex-col justify-start items-start gap-1.5">
-        <div className="self-stretch text-purple-900 text-2xl font-normal font-['Graphik'] truncate">
-          {chat.friend_nickname}
-        </div>
-        <div className="self-stretch text-zinc-700 text-base font-normal font-['Graphik'] truncate">
-          {chat.last_message ?? "No messages yet"}
-        </div>
+        <h4 className="self-stretch text-purple-900 text-2xl font-normal font-['Graphik'] truncate">{chat.friend_nickname}</h4>
+        <p className="self-stretch text-zinc-700 text-base font-normal font-['Graphik'] truncate">{chat.last_message ?? "No messages yet"}</p>
       </div>
     </button>
   )
 
   return (
-    <ChatPanelFrame
-      title="Real-Time Chat"
-      activeTab="private"
-      onOpenCommunity={onOpenCommunity}
-    >
+    <ChatPanelFrame title="Real-Time Chat" activeTab="private" onOpenCommunity={onOpenCommunity}>
       {isLoading && (
         <div className="self-stretch text-zinc-500 text-lg font-normal font-['Graphik']">Loading chats...</div>
       )}
-
       {error && (
         <div className="self-stretch text-red-600 text-base font-normal font-['Graphik']">
-          Could not load chats: {error}
+          Could not load chats, try to refresh the page.
         </div>
       )}
-
       {!isLoading && !error && (
         <div className="flex flex-col gap-7">
           <div className="self-stretch flex flex-col justify-start items-start gap-3.5">
@@ -116,11 +102,10 @@ function ListChats({ onOpenCommunity, onOpenPrivateChat }: ListChatsProps) {
               data.map((chat) => renderFriendRow(chat))
             ) : (
               <div className="self-stretch text-zinc-500 text-base font-normal font-['Graphik']">
-                No private chats yet.
+                Add new friends to start a new conversation.
               </div>
             )}
           </div>
-
           <div className="self-stretch h-0.5 bg-zinc-500"></div>
           <div className="self-stretch text-center text-zinc-500 text-xl font-normal font-['Graphik']">
             Select a friend to start chatting

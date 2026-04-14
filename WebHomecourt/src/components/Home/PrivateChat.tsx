@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import type { FriendChat } from "./ListChats"
 import { supabase } from "../../lib/supabase"
 import { useAuth } from "../../context/AuthContext"
-import { usePrivateMessagesSubscription } from "../../hooks/usePrivateMessagesSubscription"
+import useActualizarMessPriv  from "../../hooks/usePrivateMessagesSubscription"
 import { format } from "date-fns"
 
 export type Message = {
@@ -61,7 +61,7 @@ function PrivateChat({ selectedChat, onBack }: PrivateChatProps) {
     void loadMessages()
   }, [loadMessages])
 
-  usePrivateMessagesSubscription({
+  useActualizarMessPriv({
     conversationId: selectedChat.conversation_id,
     onMessageReceived: () => {
       void loadMessages()
