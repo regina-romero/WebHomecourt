@@ -21,8 +21,7 @@ export type GameItem = {
 };
 
 // API call using current year and month and compares against the user selected date
-export async function getGames(year: number, month: number, day: number, hour: number, minutes: number, currentDate: Date) {
-  let allGames: Array<GameItem>; // For agenda to disp all games 
+export async function getGames(year: number, month: number) {
   // Query using all of the info w parametrized values to obtain all of the games in the current year and month selected 
   // Connection to supabase, calls function in supabase passing param of year and month
   const { data, error } = await supabase.rpc("get_agenda_games", {
@@ -65,7 +64,7 @@ function Agenda() {
   const [showUpcoming, setShowUpcoming] = useState(true); // Shows upcoming default but can switch to past 
 
   // Default date set to right now
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const currentDate = new Date();
   const [agendaDate, setAgendaDate] = useState(new Date());
 
   // All fetched games here
@@ -88,7 +87,7 @@ function Agenda() {
     console.log(`Selected year: ${year}, month: ${month}, day: ${day}, time: ${hour}:${minutes}`);
 
     // Calls functs and then sets all the games found to the allGames arr here
-    getGames(year, month, day, hour, minutes, currentDate)
+    getGames(year, month)
       .then(games => setAllGames(games));
 
     // Auto navigation to show view that best matches navigation altering
@@ -97,7 +96,7 @@ function Agenda() {
     } else if (agendaDate > currentDate) {
       setShowUpcoming(true);
     }
-  }, [agendaDate, currentDate]);
+  }, [agendaDate]);
 
   // Div into pastgames checking if curr game item is smaller than current date and checks game is marked as done
   const pastGames = allGames.filter(

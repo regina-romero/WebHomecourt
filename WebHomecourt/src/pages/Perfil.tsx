@@ -26,12 +26,13 @@ function Perfil() {
 
     useEffect(() => {
         if (!userId) return
+        const uid = userId
 
         async function loadData() {
             const { data: userData } = await supabase
                 .from('user_laker')
                 .select('user_id, nickname, photo_url')
-                .eq('user_id', userId)
+                .eq('user_id', uid)
                 .single()
 
             if (userData) {
@@ -43,7 +44,7 @@ function Perfil() {
             }
 
            
-            const eventsData = await getUpcomingEvents(userId)
+            const eventsData = await getUpcomingEvents(uid)
             setEvents(eventsData)
         }
 

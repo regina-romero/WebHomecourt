@@ -9,9 +9,9 @@ function Login() {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState(''); // Future allow username
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [, setError] = useState('');
   const navigate = useNavigate();
-  const [user, setUser] = useState<any>(null);
+  const [, setUser] = useState<any>(null);
   const [errorMessage, setErrorMessage] = useState('');
 
   // Checks fields are filled in, and does the login w supabase 

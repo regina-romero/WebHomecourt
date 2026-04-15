@@ -82,12 +82,14 @@ async function uploadPhoto(userId: string, file: File): Promise<string | null> {
 
 // componente principal
 interface EditProfileProps {
+    userId?: string
     onBack: () => void
     onSave?: () => void
 }
 
-function EditProfile({ onBack, onSave }: EditProfileProps) {
-    const { userId } = useAuth()
+function EditProfile({ userId: propUserId, onBack, onSave }: EditProfileProps) {
+    const { userId: authUserId } = useAuth()
+    const userId = propUserId ?? authUserId
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
     const [genders, setGenders] = useState<Gender[]>([])
@@ -105,10 +107,11 @@ function EditProfile({ onBack, onSave }: EditProfileProps) {
 
     useEffect(() => {
         if (!userId) return
+        const uid = userId
         async function fetchData() {
             setLoading(true)
             const [userData, genderData] = await Promise.all([
-                getUserData(userId),
+                getUserData(uid),
                 getGenders()
             ])
 
@@ -135,18 +138,23 @@ function EditProfile({ onBack, onSave }: EditProfileProps) {
     }
 
     const handleSave = async () => {
+        if (!userId) {
+            alert("User not authenticated")
+            return
+        }
         setSaving(true)
 
         let newPhotoUrl = photoUrl
+        const uid = userId
 
         if (photoFile) {
-            const uploadedUrl = await uploadPhoto(userId, photoFile)
+            const uploadedUrl = await uploadPhoto(uid, photoFile)
             if (uploadedUrl) {
                 newPhotoUrl = uploadedUrl
             }
         }
 
-        const success = await updateUserData(userId, {
+        const success = await updateUserData(uid, {
             username,
             nickname,
             photo_url: newPhotoUrl,
