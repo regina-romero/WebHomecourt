@@ -38,7 +38,7 @@ function Login() {
       } else {
         console.log(`Sí inició sesión`);
         setUser(data.user); // Sets the user data 
-        navigate('/'); // Takes to home
+        navigate('/');
       }
     }
   };
