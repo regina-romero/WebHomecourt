@@ -12,6 +12,7 @@ import {
   type SkillLevel,
 } from "../services/apiEvents";
 import { useCourtTournamentFilters } from "../hooks/useCourtTournamentFilters";
+import { useAuth } from "../context/AuthContext";
 
 interface CourtTournamentsProps {
   selectedCourtId: number | null;
@@ -61,6 +62,7 @@ function formatCreatorLabel(userId: string): string {
 }
 
 export default function CourtTournaments({ selectedCourtId }: CourtTournamentsProps) {
+  const { user } = useAuth();
   const [tournaments, setTournaments] = useState<CourtTournament[]>([]);
   const [courts, setCourts] = useState<Court[]>([]);
   const [skillLevels, setSkillLevels] = useState<SkillLevel[]>([]);
