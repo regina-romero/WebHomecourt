@@ -1,11 +1,9 @@
 import { supabase } from "../../lib/supabase"
 import { useEffect, useState } from "react"
-import { useAuth } from "../../hooks/Perfil/useAuth"
+import { useAuth } from "../../context/AuthContext"
 const DEFAULT_AVATAR = "https://ptbcoxaguvbwprxdundz.supabase.co/storage/v1/object/public/user_images/profile_picture_default.png"
-
-
 // tipos
-type Gender = {
+export type Gender = {
     gender_id: number
     gender: string
 }
@@ -33,7 +31,7 @@ async function getUserData(userId: string): Promise<UserData | null> {
     return data
 }
 
-async function getGenders(): Promise<Gender[]> {
+export async function getGenders(): Promise<Gender[]> {
     const { data, error } = await supabase
         .from("gender")
         .select("gender_id, gender")
@@ -59,10 +57,26 @@ async function updateUserData(userId: string, userData: Partial<UserData>): Prom
     return true
 }
 
-async function uploadPhoto(userId: string, file: File): Promise<string | null> {
+export async function uploadPhoto(userId: string, file: File): Promise<string | null> {
     const fileExt = file.name.split('.').pop()
     const fileName = `${userId}-${Date.now()}.${fileExt}`
     const filePath = `avatars/${fileName}`
+
+    const { data: existingFiles } = await supabase.storage
+        .from("user_images")
+        .list("avatars")
+
+    if (existingFiles && existingFiles.length > 0) {
+        const filesToDelete = existingFiles
+            .filter(f => f.name.startsWith(userId))
+            .map(f => `avatars/${f.name}`)
+
+        if (filesToDelete.length > 0) {
+            await supabase.storage
+                .from("user_images")
+                .remove(filesToDelete)
+        }
+    }
 
     const { error: uploadError } = await supabase.storage
         .from("user_images")
@@ -87,18 +101,19 @@ interface EditProfileProps {
 }
 
 function EditProfile({ onBack, onSave }: EditProfileProps) {
-    const { userId } = useAuth()
+    const { user } = useAuth()
+    const userId = user?.id
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
     const [genders, setGenders] = useState<Gender[]>([])
-    
+
     // estados del forms
     const [username, setUsername] = useState("")
     const [nickname, setNickname] = useState("")
     const [photoUrl, setPhotoUrl] = useState<string | null>(null)
     const [gender, setGender] = useState<number | null>(null)
     const [birthdate, setBirthdate] = useState("")
-    
+
     // photo upload state
     const [photoFile, setPhotoFile] = useState<File | null>(null)
     const [photoPreview, setPhotoPreview] = useState<string | null>(null)

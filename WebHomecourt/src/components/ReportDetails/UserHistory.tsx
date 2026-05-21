@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom'
 import HistoryCard from './HistoryCard'
 import StarRating from './StarRating'
 
@@ -7,16 +8,20 @@ interface UserHistoryProps {
     photo_url: string
     rating: number
     totalReports: number
+    userId: string
   }
   history: {
     event: string
     date: string
     rating: number
     tags: string[]
+    report_id: string
   }[]
 }
 
 const UserHistory = ({ reportedUser, history }: UserHistoryProps) => {
+  const navigate = useNavigate()
+
   return (
     <div className="bg-[#000000]/5 w-full md:w-84 flex flex-col gap-4 self-stretch p-4 -mb-10">
 
@@ -31,14 +36,14 @@ const UserHistory = ({ reportedUser, history }: UserHistoryProps) => {
             )}
           </div>
           <div>
-            <h2 className="font-medium" style={{ fontSize: '18px' }}>{reportedUser.name}</h2>
+            <h2 className="font-medium" style={{ fontSize: '18px' }}>@{reportedUser.name}</h2>
             <StarRating rating={reportedUser.rating} />
           </div>
         </div>
         <p className="text-gray-500 font-medium text-sm pb-4" style={{ fontSize: '14px' }}>
           {reportedUser.totalReports} reports | Avg. Rating {reportedUser.rating}
         </p>
-        <button className="mt-3 w-full bg-morado-lakers text-white py-1.5 rounded-lg font-medium hover:bg-morado-oscuro transition-colors" style={{ fontSize: '14px' }}>
+        <button onClick={() => navigate(`/perfil/${reportedUser.userId}`)} className="mt-3 w-full bg-morado-lakers text-white py-1.5 rounded-lg font-medium hover:bg-morado-oscuro transition-colors" style={{ fontSize: '14px' }}>
           View Profile
         </button>
       </div>
@@ -55,6 +60,7 @@ const UserHistory = ({ reportedUser, history }: UserHistoryProps) => {
               date={h.date}
               rating={h.rating}
               tags={h.tags ?? []}
+              reportId={h.report_id}
             />
           ))
         )}

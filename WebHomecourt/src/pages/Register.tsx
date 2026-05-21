@@ -1,13 +1,200 @@
-//import { useState } from 'react'
-//import { useNavigate } from 'react-router-dom'
+// import { useState } from 'react'
+import { LeftSide, RightSide } from '../components/Registro/laterales'
+import { useNavigate } from 'react-router-dom'
+import Button from '../components/button.tsx'
+import GoogleButton from '../components/botongoogle.tsx'
+import StatusAlert from '../components/Messages/StatusAlert.tsx'
+import { useRegister } from "../hooks/useRegister"
 
 function Register() {
-  return (
-    <div>
-        <h1>Registro</h1>
-        <a href="/login">Regresa a login</a>
+  const navigate = useNavigate()
+
+  const {
+    email,
+    setEmail,
+    touchEmail,
+    password,
+    setPassword,
+    touchPassword,
+    confirmPassword,
+    setConfirmPassword,
+    touchConfirmPassword,
+    loading,
+    alert,
+    emailError,
+    passwordError,
+    passwordPolicy,
+    register,
+  } = useRegister()
+
+  const validationMessage = alert?.tone === "warning" ? alert.message : (emailError || passwordError || "")
+  const visibleAlert = alert?.tone === "warning" ? null : alert
+
+  const handleRegisterClick = async () => {
+    const ok = await register()
+    if (ok) navigate("/complete-register")
+  }
+
+  const hasIssue = (issue: string) => passwordPolicy.issues.includes(issue as any)
+  const okMinLength = !hasIssue("minLength")
+  const okUpper = !hasIssue("upper")
+  const okLower = !hasIssue("lower")
+  const okNumber = !hasIssue("number")
+  const okSymbol = !hasIssue("symbol")
+
+  const showChecklist = password.length > 0
+
+  const ChecklistItem = ({
+    ok,
+    text,
+  }: {
+    ok: boolean
+    text: string
+  }) => (
+    <div className="flex items-center gap-2 text-sm">
+      <span
+        className={[
+          "inline-flex items-center justify-center w-4 h-4 rounded-full border",
+          ok
+            ? "bg-morado-lakers border-morado-lakers"
+            : "bg-white border-zinc-300",
+        ].join(" ")}
+      >
+        {ok ? (
+          <span className="block w-2 h-2 bg-white rounded-full" />
+        ) : null}
+      </span>
+
+      <span className={ok ? "text-zinc-500 line-through" : "text-zinc-500"}>
+        {text}
+      </span>
     </div>
   )
-};
 
-export default Register;
+  return (
+    <div className="relative min-h-screen bg-zinc-100 flex items-center justify-center overflow-hidden">
+      <div className="absolute top-0 right-0 hidden md:block">
+        <LeftSide />
+      </div>
+
+      <div className="absolute bottom-0 left-0 hidden md:block">
+        <RightSide />
+      </div>
+
+      <div className="relative flex flex-col items-center w-full max-w-sm px-8 py-10">
+        <img
+          src="/lakers_homecourt.png"
+          alt="Lakers Homecourt"
+          className="h-16 object-contain mb-6"
+        />
+
+        <h1 className="text-morado-lakers mb-1 text-center">Hi, new fan!</h1>
+        <p className="text-gray-600 mb-6">Become part of the Laker family.</p>
+
+        <div className="flex flex-col gap-4 w-full">
+          <div className="flex flex-col gap-1">
+            <label>Email</label>
+            <input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              onBlur={touchEmail}
+              className={`h-11 px-4 bg-white rounded-2xl text-zinc-500 focus:outline-2 ${
+                emailError ? "outline-orange-800" : "focus:outline-morado-lakers"
+              }`}
+            />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label>Password</label>
+            <input
+              type="password"
+              placeholder="Create new password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              onBlur={touchPassword}
+              required
+              className="h-11 px-4 bg-white rounded-2xl text-zinc-500 focus:outline-2 focus:outline-morado-lakers"
+            />
+
+            {showChecklist && (
+              !passwordPolicy.ok ? (
+                <div className="mt-2 bg-white/70 rounded-2xl px-4 py-3 border border-zinc-200">
+                  <div className="flex flex-col gap-1">
+                    <ChecklistItem ok={okMinLength} text="At least 8 characters" />
+                    <ChecklistItem ok={okUpper} text="At least 1 uppercase letter" />
+                    <ChecklistItem ok={okLower} text="At least 1 lowercase letter" />
+                    <ChecklistItem ok={okNumber} text="At least 1 number" />
+                    <ChecklistItem ok={okSymbol} text="At least 1 symbol" />
+                  </div>
+                </div>
+              ) : (
+                <div className="mt-2 text-sm text-morado-lakers font-semibold">
+                  Password looks good.
+                </div>
+              )
+            )}
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label>Confirm password</label>
+            <input
+              type="password"
+              placeholder="Confirm password"
+              value={confirmPassword}
+              onBlur={touchConfirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+              className="h-11 px-4 bg-white rounded-2xl text-zinc-500 focus:outline-2 focus:outline-morado-lakers"
+            />
+          </div>
+
+          <Button
+            text={loading ? "Signing-up" : "Continue"}
+            type="primary"
+            onClick={handleRegisterClick}
+            className="w-full text-g !py-2"
+            // disabled={!canSubmit}
+          />
+
+          {(validationMessage || visibleAlert) && (
+            <div className="mt-2">
+              {validationMessage ? (
+                <StatusAlert tone="warning" title={validationMessage} />
+              ) : (
+                visibleAlert && (
+                  <StatusAlert tone={visibleAlert.tone} title={visibleAlert.message} />
+                )
+              )}
+            </div>
+          )}
+
+          <div className="flex items-center w-full my-4">
+            <div className="flex-1 h-px bg-gray-300"></div>
+            <span className="px-3 text-morado-lakers font-semibold text-sm">
+              Or
+            </span>
+            <div className="flex-1 h-px bg-gray-300"></div>
+          </div>
+
+          <GoogleButton variant="register" />
+        </div>
+
+        <div className="inline-flex items-center gap-2.5 mt-4">
+          <p className="text-morado-lakers text-lg font-semibold">
+            Already have an account?
+          </p>
+          <a
+            href="/login"
+            className="text-morado-bajo text-lg font-semibold underline hover:text-morado-lakers"
+          >
+            Sign In
+          </a>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default Register

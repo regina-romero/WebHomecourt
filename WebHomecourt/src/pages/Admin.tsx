@@ -1,4 +1,4 @@
-import Nav from '../components/Nav'
+import Nav from '../components/Nav/Nav.tsx'
 import StatsCards from '../components/Admin/StatsCards'
 import UserReports from '../components/Admin/UserReports';
 import ActiveEvents from '../components/Admin/ActiveEvents.tsx'
@@ -18,6 +18,7 @@ export const getUserReports = async () => {
       reported_user:user_laker!reported_user_id(username, photo_url),
       event:event!event_id(event_name)
     `)
+    .neq('status', 'Resolved')
     .order('created_at', { ascending: false })
 
   if (error) {
@@ -39,8 +40,9 @@ export const getEventReports = async () => {
       created_at,
       event_id,
       reporter:user_laker!reporter_user_id(username, photo_url),
-      event:event!event_id(event_name, court:court!court_id(name))
+      event:event!event_id(event_name, date, created_user:user_laker!created_user_id(username, photo_url), court:court!court_id(name))
     `)
+    .neq('status', 'Resolved')
     .order('created_at', { ascending: false })
 
   if (error) {
@@ -65,10 +67,12 @@ export const getActiveEvents = async () => {
       max_players,
       allow_event,
       date,
+      event_status_id,
       created_user:user_laker!created_user_id(username, photo_url),
       court:court!court_id(name)
     `)
     .eq('allow_event', true)
+    .eq('event_status_id', 1)
     .order('date', { ascending: true })
 
   if (error) {
@@ -83,15 +87,18 @@ export const getAdminStats = async () => {
   const [pendingUserReports, pendingEventReports,flaggedUsers, flaggedEvents, suspendedUsers] = await Promise.all([
     supabase.from('user_report').select('ureport_id', { count: 'exact' }).eq('status', 'Pending'),
     supabase.from('event_report').select('ereport_id', { count: 'exact' }).eq('status', 'Pending'),
-    supabase.from('user_report').select('reported_user_id', { count: 'exact' }),
-    supabase.from('event_report').select('ereport_id', { count: 'exact' }),
-    supabase.from('user_laker').select('user_id', { count: 'exact' }).eq('user_type', 2),
+    supabase.from('user_report').select('reported_user_id'),
+    supabase.from('event_report').select('event_id'),
+    supabase.from('user_laker').select('user_id', { count: 'exact' }).not('banned_until', 'is', null).gt('banned_until', new Date().toISOString()),
   ])
+
+  const uniqueFlaggedUsers = new Set(flaggedUsers.data?.map(r => r.reported_user_id)).size //remove duplicate user
+  const uniqueFlaggedEvents = new Set(flaggedEvents.data?.map(r => r.event_id)).size //remove duplicate event
 
   return {
     reportsPending: (pendingUserReports.count ?? 0) + (pendingEventReports.count ?? 0),
-    usersFlagged: flaggedUsers.count ?? 0,
-    eventsFlagged: flaggedEvents.count ?? 0,
+    usersFlagged: uniqueFlaggedUsers,
+    eventsFlagged: uniqueFlaggedEvents,
     suspendedUsers: suspendedUsers.count ?? 0,
   }
 }
@@ -124,7 +131,7 @@ export const getUserHistory = async (userId: string, currentReportId: string) =>
 
 function Admin() {
   return (
-    <div className="flex flex-col items-center justify-center">
+    <div >
       <Nav current="Admin" />
       <div className="px-4 md:px-14 py-5 pb-10 bg-zinc-100 w-full">
 

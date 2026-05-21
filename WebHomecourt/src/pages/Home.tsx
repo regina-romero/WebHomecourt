@@ -1,4 +1,4 @@
-import Nav from '../components/Nav'
+import Nav from '../components/Nav/Nav.tsx'
 import { useEffect, useState } from "react"
 import { supabase } from "../lib/supabase"
 import MarcadorActivo, {getMarcadorActivo, type MarcadorJuego} from '../components/Home/Marcador'
@@ -89,7 +89,7 @@ function Home() {
   const handleOpenPrivateList = () => {
     setChatView("private-list")
   }
-
+  // Esto ayuda a que no se necesite estar haciendo gets para la url y el nickname
   const handleOpenPrivateChat = (chat: FriendChat) => {
     setSelectedChat(chat)
     setChatView("private-chat")

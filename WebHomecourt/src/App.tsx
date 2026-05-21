@@ -5,6 +5,7 @@ import Agenda from './pages/Agenda'
 import Brackets from './pages/Brackets'
 import Estadisticas from './pages/Estadisticas'
 import LakersCourt from './pages/LakersCourt'
+import HistorialLakers from './pages/HistorialLakers';
 import Juego from './pages/Juego'
 import Store from './pages/Store'
 import Perfil from './pages/Perfil'
@@ -16,6 +17,27 @@ import Register from './pages/Register'
 import UserSession from './pages/UserSession' // Ejemplo usando sesión de usuairo
 import EventReportDetails from './pages/EventReportDetails'
 import EditarPerfil from './pages/EditarPerfil';
+import CompleteRegister from './pages/CompleteRegister';
+import Monitor from './pages/Monitor';
+import EditAvatar from './pages/EditAvatar';
+import MyFriends from './pages/MyFriends';
+import { WrappedPage } from './pages/Wrapped';
+import Comparison from './pages/Comparison';
+import Collection from './pages/Collection';
+
+import { useAuth } from './context/AuthContext'
+import { Navigate } from 'react-router-dom'
+
+const AdminRoute = ({ children }: { children: React.ReactNode }) => {
+  const { userType, loading, user } = useAuth()
+  
+  if (loading) return null
+  if (!user) return <Navigate to="/" replace />
+  if (userType === null) return null //espera a que fetch user termine
+  if (userType !== 1) return <Navigate to="/" replace />
+  
+  return <>{children}</>
+}
 
 function App() {
   return (
@@ -29,13 +51,22 @@ function App() {
         <Route path="/juego" element={<Juego />} />
         <Route path="/store" element={<Store />} />
         <Route path="/perfil" element={<Perfil />} />
-        <Route path="/admin" element={<Admin/>} />
-        <Route path="/admin/report/:id" element={<ReportDetails />} />
-        <Route path="/admin/event/:id" element={<EventReportDetails />} />
+        <Route path="/perfil/:userId" element={<Perfil />} />
+        <Route path="/my-friends" element={<MyFriends />} />
+        <Route path="/admin" element={<AdminRoute><Admin/></AdminRoute>} />
+        <Route path="/admin/report" element={<AdminRoute><ReportDetails /></AdminRoute>} />
+        <Route path="/admin/event" element={<AdminRoute><EventReportDetails /></AdminRoute>} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/session" element={<UserSession />} /> 
         <Route path="/editar-perfil" element={<EditarPerfil />} />
+        <Route path="/complete-register" element={<CompleteRegister />} />
+        <Route path="/admin/monitor" element={<AdminRoute><Monitor /></AdminRoute>} />
+        <Route path='/edit-avatar' element={<EditAvatar/>}></Route>
+        <Route path='/wrapped' element={<WrappedPage />} />
+        <Route path='/comparison' element={<Comparison/>}></Route>
+        <Route path='/historial-lakers' element={<HistorialLakers/>}></Route>
+        <Route path='/collection' element={<Collection/>}></Route>
       </Routes>
     </BrowserRouter>
   )
